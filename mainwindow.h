@@ -11,8 +11,8 @@
 #include <QSqlTableModel>
 #include <QSqlError>
 #include <QSqlRecord>
-#include "logger.h"
 #include "converter.h"
+#include "dbworker.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(DbWorker dbConnect, QWidget *parent = 0);
     QByteArray getInformationAboutObj( QByteArray );
     void makeLogNote( QString );
 
@@ -40,7 +40,6 @@ private slots:
     void setMyIp();
     void on_combObjTableBut_clicked();
     void on_logTableBut_3_clicked();
-    void setRussianColomnIDs(QString);
 
     QString getCurrentDateAndTime();
     QString makeDatagramCoord( QString );
@@ -50,23 +49,17 @@ private:
     const int X_POSITION_FRAME=0;
     const int Y_POSITION_FRAME=1;
     const int LISTERNING_PORT=5825;
-    const int DB_PORT=5432;
     int unicumMessageId = 1;
 
     const QString myPort = "5825";
     const QString targetPort = "5824";
 
     Ui::MainWindow *ui;
-
-    QSqlDatabase   db;
-    QUdpSocket     udpSocket;
-    QSqlTableModel *model;
-
+    QUdpSocket udpSocket;
     QHostAddress myIp;
     QHostAddress targetIp;
-
-    Logger    *logger;
     Converter *converter;
+    DbWorker dbConnect;
 };
 
 #endif // MAINWINDOW_H

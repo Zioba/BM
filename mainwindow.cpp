@@ -5,42 +5,27 @@
 #include <QErrorMessage>
 #include <QMessageBox>
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(DbWorker dbConnect, QWidget *parent) :
+    dbConnect(dbConnect),
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     QPoint pos( X_POSITION_FRAME, Y_POSITION_FRAME );
     this->move( pos );
     ui->setupUi( this );
-    setWindowTitle( "BM" );
-
-    db=QSqlDatabase::addDatabase( "QPSQL" );
-    db.setHostName( "127.0.0.1" );
-    db.setPort( DB_PORT );
-    db.setDatabaseName( "Database_BM" );
-    db.setUserName( "postgres" );
-    db.setPassword( "qwerty" );
-    if ( !db.open() ) {
-        makeLogNote( db.lastError().text() );
-    }
-    else {
-        makeLogNote( "Start working" );
-    }
-
-    model = new QSqlTableModel( this, db );
+    setWindowTitle("BM");
+    makeLogNote("Start working");
     udpSocket.bind( LISTERNING_PORT );
     on_combObjTableBut_clicked();
-    logger = new Logger(db);
     converter = new Converter();
     setTargetIp();
     setMyIp();
-    connect( &udpSocket, SIGNAL( readyRead() ), this, SLOT( readDatagram() ) );
+    connect(&udpSocket, SIGNAL(readyRead()), this, SLOT(readDatagram()));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete logger;
     delete converter;
 }
 
@@ -55,10 +40,10 @@ void MainWindow::on_exitButton_clicked()
 {
    this->close();
 }
-
+//QSqlTableModel *model;
 void MainWindow::on_updBut_clicked()
 {
-    model->select();
+    ui->tableView->update();
     ui->logField->append( tr( "%1 таблица обновлена" ).arg( QTime::currentTime().toString( "hh:mm:ss" ) ) );
 }
 
@@ -100,7 +85,7 @@ void MainWindow::on_itemSendCoord_triggered()
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
     makeLogNote( "отправлен пакет" );
     QMessageBox::information(this, "УСПЕХ", "Пакет отправлен успешно");
-    bool x = logger->makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
+    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
     if ( x ) {
         makeLogNote( "запись действия добавлена в БД" );
     }
@@ -142,7 +127,7 @@ void MainWindow::on_itemSendRocket_triggered()
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
     makeLogNote( "отправлен пакет" );
     QMessageBox::information(this, "УСПЕХ", "Пакет отправлен успешно");
-    bool x = logger->makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
+    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, data, 2);
     if ( x ) {
         makeLogNote( "запись действия добавлена в БД" );
     }
@@ -251,7 +236,7 @@ void MainWindow::readDatagram()
     udpSocket.readDatagram( datagram.data(), datagram.size() );
     qDebug() << datagram;
     QStringList list=converter->decode( datagram );
-    bool x=logger->makeNote( 1, getCurrentDateAndTime(), 1, list.at( 12 ), 3 );
+    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, list.at( 12 ), 3 );
     if ( x ) {
         makeLogNote( "получена датаграмма квитанция" );
 
@@ -263,57 +248,25 @@ void MainWindow::readDatagram()
 
 void MainWindow::on_combObjTableBut_clicked()
 {
-    model->setTable( "own_forces.combatobject_location" );
+    QSqlTableModel *model = dbConnect.getTable(ui->tableView, "own_forces.combatobject_location", "combatobject_location");
     ui->tableView->setModel( model );
-    model->select();
     for ( int i = 0; i < model->columnCount(); i++ ) {
         ui->tableView->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
     }
     makeLogNote( "Загружены данные combat objects" );
-    setRussianColomnIDs("combatobject_location");
 }
 
 void MainWindow::on_logTableBut_3_clicked()
 {
-    model->setTable( "log.log_table_message" );
+    QSqlTableModel *model = dbConnect.getTable(ui->tableView, "log.log_table_message", "log_table_message");
     ui->tableView->setModel( model );
-    model->select();
-    makeLogNote( "Загружены данные log table" );
     for ( int i = 0; i < model->columnCount(); i++ ) {
         ui->tableView->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
     }
-    setRussianColomnIDs("log_table_message");
+    makeLogNote( "Загружены данные log table" );
 }
 
 QString MainWindow::getCurrentDateAndTime()
 {
     return QDate::currentDate().toString( "dd.MM.yyyy" ) + " " + QTime::currentTime().toString( "hh:mm:ss.zzz" );
-}
-
-void MainWindow::setRussianColomnIDs(QString tableName) {
-    QSqlQuery query = QSqlQuery( db );
-    query.prepare( "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+tableName+"';" );
-    query.exec();
-    if ( query.next() ){
-        for ( int i = 0; i < query.size(); i++) {
-            QSqlRecord rec;
-            rec = query.record();
-            QSqlQuery query2 = QSqlQuery( db );
-            QString s = "SELECT description FROM pg_description INNER JOIN ";
-            query2.prepare( s +
-                            "(SELECT oid FROM pg_class WHERE relname ='" +
-                            tableName +
-                            "') as table_oid " +
-                            "ON pg_description.objoid = table_oid.oid " +
-                            "AND pg_description.objsubid IN " +
-                            "(SELECT attnum FROM pg_attribute WHERE attname = '" +
-                            query.value(0).toString() +
-                            "' AND pg_attribute.attrelid = table_oid.oid );" );
-            query2.exec();
-            if (query2.next()) {
-                model->setHeaderData(i, Qt::Horizontal, query2.value(0).toString());
-            }
-            query.next();
-        }
-    }
 }

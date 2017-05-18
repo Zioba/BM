@@ -15,15 +15,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         deldialog.cpp \
         mainwindow.cpp \
-    logger.cpp \
     ipdialog.cpp \
-    converter.cpp
+    converter.cpp \
+    dbworker.cpp
 
 HEADERS  += mainwindow.h\
         deldialog.h \
-    logger.h \
     ipdialog.h \
-    converter.h
+    converter.h \
+    dbworker.h
 
 FORMS    += mainwindow.ui\
         deldialog.ui \
