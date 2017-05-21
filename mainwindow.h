@@ -60,6 +60,9 @@ private:
     QHostAddress targetIp;
     Converter *converter;
     DbWorker dbConnect;
+    void parsingMessage(QString s);
+    QString assistParser(QString data, int &counter);
+    void parsingCommand(QString s, QString object);
 };
 
 #endif // MAINWINDOW_H

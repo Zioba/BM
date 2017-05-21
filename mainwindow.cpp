@@ -80,7 +80,7 @@ void MainWindow::on_itemSendCoord_triggered()
          << "1"
          << data;
     unicumMessageId++;
-    QByteArray datagram = converter->encode( list );
+    QByteArray datagram = converter->encodeDatagram( list );
     qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
     makeLogNote( "отправлен пакет" );
@@ -122,7 +122,7 @@ void MainWindow::on_itemSendRocket_triggered()
          << "1"
          << data;
     unicumMessageId++;
-    QByteArray datagram = converter->encode( list );
+    QByteArray datagram = converter->encodeDatagram( list );
     qDebug() << targetPort.toLong( Q_NULLPTR, 10 );
     udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
     makeLogNote( "отправлен пакет" );
@@ -146,7 +146,7 @@ QString MainWindow::makeDatagramCoord( QString q )
     answer.append( "C" );                        //данные о сообщении
     answer.append( "C1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
     answer.append( "=" );                        //Признак начала передаваемых данных
-    QSqlQuery query= QSqlQuery( db );
+    QSqlQuery query= QSqlQuery( dbConnect.getDb() );
     QString s;
     s = "SELECT st_x(obj_location), st_y(obj_location), st_z(obj_location), direction FROM own_forces.combatobject_location WHERE combat_hierarchy='"+q+"';";
     if ( !query.exec( s ) ) {
@@ -179,7 +179,7 @@ QString MainWindow::makeDatagramRocket( QString q )
     answer.append( "C" );                        //данные о сообщении
     answer.append( "T1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
     answer.append( "=" );                        //Признак начала передаваемых данных
-    QSqlQuery query= QSqlQuery( db );
+    QSqlQuery query= QSqlQuery( dbConnect.getDb() );
     QString s;
     s = "SELECT type_tid FROM own_forces.rocket WHERE combatobjectid='"+q+"';";
     if ( !query.exec( s ) ) {
@@ -235,15 +235,93 @@ void MainWindow::readDatagram()
     datagram.resize( udpSocket.pendingDatagramSize() );
     udpSocket.readDatagram( datagram.data(), datagram.size() );
     qDebug() << datagram;
-    QStringList list=converter->decode( datagram );
-    bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, list.at( 12 ), 3 );
-    if ( x ) {
-        makeLogNote( "получена датаграмма квитанция" );
+    QStringList messageMembersList = converter->decodeDatagram( datagram );
+    parsingMessage( messageMembersList.at( 12 ) );
+}
 
+void MainWindow::parsingMessage( QString s )
+{
+    if ( s.at( 0 ) == '1' ) {
+        makeLogNote( "oшибка, данные сжаты" );
+        //не работаем пока со сжатием данных
+        return;
     }
-        else {
-        makeLogNote( "FAIL1" );
+    bool trigger = false;
+    QString object = "";
+    for ( int i = 1; i < 7; i++ )
+    {
+        if ( s.at( i ) != '0' ) {
+            trigger = true;
+            object += s.at( i );
+        }
+        else if ( trigger ) {
+            object += s.at( i );
+        }
     }
+    QString messageCode;
+    for ( int i = 15; i < 17; i++ )
+    {
+        messageCode+=s.at( i );
+    }
+    if (QString::compare( messageCode, "K1") == 0) {
+        parsingCommand(s, object);
+        if ( dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, s, 3 ) ) {
+            makeLogNote( "получена КОМАНДА" );
+        }
+            else {
+            makeLogNote( "ошибка занесения в лог" );
+        }
+    }
+    else {
+        bool x = dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, s, 3 );
+        if ( x ) {
+            makeLogNote( "получена датаграмма квитанция" );
+
+        }
+            else {
+            makeLogNote( "FAIL1" );
+        }
+    }
+}
+
+void MainWindow::parsingCommand( QString s, QString object)
+{
+    QString data = "";
+    for ( int i = 18; i < s.size(); i++ )
+    {
+        data += s.at( i );
+    }
+    int i = 0;
+    QString commandId = assistParser( data, i );
+    QString timeCreate = assistParser( data, i );
+    QString commandName = assistParser( data, i );
+    QString timeExec = assistParser( data, i );
+    QString priznak = assistParser( data, i );
+    QString numb = assistParser( data, i );
+    qDebug() << commandId << timeCreate << commandName << timeExec << priznak << numb;
+    for (int j = 0; j < numb.toInt(NULL,10); j++) {
+        QString param = assistParser( data, i );
+        QString value = assistParser( data, i );
+        qDebug() << param << value;
+    }
+    //типо сделать тут фрейм с отображением данных
+    /*if ( dbConnect.writeCoordinats(x, y, z, dir, getCurrentDateAndTime(), object) ) {
+        makeLogNote( "база обновлена" );
+    }
+    else {
+        makeLogNote( "ошибка запроса" );
+    }*/
+}
+
+QString MainWindow::assistParser( QString data, int &counter )
+{
+    QString answer = "";
+    while ( data.at( counter ) != ';' && data.at( counter ) != '\r' ) {
+        answer.append( data.at( counter ) );
+        counter++;
+    }
+    counter++;
+    return answer;
 }
 
 void MainWindow::on_combObjTableBut_clicked()

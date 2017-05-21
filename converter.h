@@ -11,9 +11,9 @@ class Converter
 public:
     Converter();
 
-    QByteArray encode( QStringList ); //закодировать датаграмму
+    QByteArray encodeDatagram( QStringList ); //закодировать датаграмму
 
-    QStringList decode( QByteArray ); //раскодировать датаграмму
+    QStringList decodeDatagram( QByteArray ); //раскодировать датаграмму
 
     QString dobei( QString, int );  //приведение длины строки к нужному формату
 

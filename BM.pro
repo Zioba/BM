@@ -17,14 +17,17 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     ipdialog.cpp \
     converter.cpp \
-    dbworker.cpp
+    dbworker.cpp \
+    commandsaddform.cpp
 
 HEADERS  += mainwindow.h\
         deldialog.h \
     ipdialog.h \
     converter.h \
-    dbworker.h
+    dbworker.h \
+    commandsaddform.h
 
 FORMS    += mainwindow.ui\
         deldialog.ui \
-    ipdialog.ui
+    ipdialog.ui \
+    commandsaddform.ui
