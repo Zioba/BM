@@ -12,10 +12,6 @@ CommandsAddForm::CommandsAddForm(QString ownName, QWidget *parent) :
     ui->timeDocRegister->setDateTime(QDateTime::currentDateTime());
     ui->stackedWidget->setCurrentIndex(0);
     ui->tableWidget_4->setRowCount(0);
-    setCommandsSignals();
-    setAttributeExecution();
-
-    connect(ui->timeExecBox, SIGNAL(clicked(bool)), this, SLOT(changeEnabledTimerExec()));
 }
 
 CommandsAddForm::~CommandsAddForm()
@@ -23,12 +19,7 @@ CommandsAddForm::~CommandsAddForm()
     delete ui;
 }
 
-void CommandsAddForm::addRecivers()
-{
-
-}
-
-void CommandsAddForm::receiveDataParametrs(QString parametr, QString value)
+void CommandsAddForm::setParametr(QString parametr, QString value)
 {
     int n = ui->tableWidget_4->rowCount();
     if (n == 0) {
@@ -42,42 +33,23 @@ void CommandsAddForm::receiveDataParametrs(QString parametr, QString value)
     ui->tableWidget_4->setItem(n-1, 1, new QTableWidgetItem(value));
 }
 
-void CommandsAddForm::setCommandsSignals()
+void CommandsAddForm::setTimeCreate(QString s)
 {
-    QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '70.10.*{1,}';";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
-
-    QStringList list;
-    while (query.next()) {
-        list.append(query.value(0).toString());
-    }
-    ui->commandsSignalsBox->addItems(list);
+    QDateTime *trash = new QDateTime()
+    ui->timeCreateDTE->setDateTime(s);
 }
 
-void CommandsAddForm::setAttributeExecution()
+void CommandsAddForm::setTimeExecution(QString s)
 {
-    QSqlQuery query;
-    QString selectQuery = "SELECT termname FROM reference_data.terms WHERE termhierarchy ~ '70.30.*{1,}';";
-    if (!query.exec(selectQuery)) {
-        qDebug() << "Unable to make select operation!" << query.lastError();
-    }
-
-    QStringList list;
-    while (query.next()) {
-        list.append(query.value(0).toString());
-    }
-    ui->attrExecBox->addItems(list);
+    ui->timeExecDTE->setTime(s);
 }
 
-void CommandsAddForm::changeEnabledTimerExec()
+void CommandsAddForm::setCommandsSignals(QString s)
 {
-    if ( ui->timeExecBox->isChecked() ) {
-        ui->timeExecDTE->setEnabled(true);
-    }
-    else {
-        ui->timeExecDTE->setEnabled(false);
-    }
+    ui->commandsSignalsLine->setText(s);
+}
+
+void CommandsAddForm::setAttributeExecution(QString s)
+{
+    ui->attrExecLine->setText(s);
 }

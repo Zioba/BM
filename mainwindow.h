@@ -13,6 +13,7 @@
 #include <QSqlRecord>
 #include "converter.h"
 #include "dbworker.h"
+#include "commandsaddform.h"
 
 namespace Ui {
 class MainWindow;

@@ -299,11 +299,15 @@ void MainWindow::parsingCommand( QString s, QString object)
     QString priznak = assistParser( data, i );
     QString numb = assistParser( data, i );
     qDebug() << commandId << timeCreate << commandName << timeExec << priznak << numb;
+    CommandsAddForm *form = new CommandsAddForm("Машина боевого управления");
     for (int j = 0; j < numb.toInt(NULL,10); j++) {
         QString param = assistParser( data, i );
         QString value = assistParser( data, i );
-        qDebug() << param << value;
+        form->setParametr(param, value);
     }
+    form->setCommandsSignals(commandName);
+    form->setAttributeExecution(priznak);
+    form->show();
     //типо сделать тут фрейм с отображением данных
     /*if ( dbConnect.writeCoordinats(x, y, z, dir, getCurrentDateAndTime(), object) ) {
         makeLogNote( "база обновлена" );
