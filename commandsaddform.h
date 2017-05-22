@@ -25,6 +25,8 @@ public:
     void setTimeCreate(QString s);
     void setTimeExecution(QString s);
 
+private slots:
+    void on_endBut_clicked();
 private:
 };
 

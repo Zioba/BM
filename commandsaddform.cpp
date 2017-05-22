@@ -35,13 +35,15 @@ void CommandsAddForm::setParametr(QString parametr, QString value)
 
 void CommandsAddForm::setTimeCreate(QString s)
 {
-    QDateTime *trash = new QDateTime()
-    ui->timeCreateDTE->setDateTime(s);
+    QDateTime *trash = new QDateTime();
+    trash->fromString(s,"yyyy-mm-dd hh:mm:ss");
+    //2000-12-31 23:00:33.916+02
+    ui->timeCreateDTE->setDateTime(*trash);
 }
 
 void CommandsAddForm::setTimeExecution(QString s)
 {
-    ui->timeExecDTE->setTime(s);
+    //ui->timeExecDTE->setTime(s);
 }
 
 void CommandsAddForm::setCommandsSignals(QString s)
@@ -52,4 +54,9 @@ void CommandsAddForm::setCommandsSignals(QString s)
 void CommandsAddForm::setAttributeExecution(QString s)
 {
     ui->attrExecLine->setText(s);
+}
+
+void CommandsAddForm::on_endBut_clicked()
+{
+   this->close();
 }

@@ -303,10 +303,12 @@ void MainWindow::parsingCommand( QString s, QString object)
     for (int j = 0; j < numb.toInt(NULL,10); j++) {
         QString param = assistParser( data, i );
         QString value = assistParser( data, i );
-        form->setParametr(param, value);
+        form->setParametr(Utility::convertCodeToReferenceName(dbConnect.getDb(), param), value);
     }
-    form->setCommandsSignals(commandName);
-    form->setAttributeExecution(priznak);
+    form->setCommandsSignals(Utility::convertCodeToReferenceName(dbConnect.getDb(), commandName));
+    form->setAttributeExecution(Utility::convertCodeToReferenceName(dbConnect.getDb(),priznak));
+    form->setTimeCreate(timeCreate);
+    form->setTimeExecution(timeExec);
     form->show();
     //типо сделать тут фрейм с отображением данных
     /*if ( dbConnect.writeCoordinats(x, y, z, dir, getCurrentDateAndTime(), object) ) {

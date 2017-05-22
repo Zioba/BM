@@ -11,6 +11,7 @@
 #include <QSqlTableModel>
 #include <QSqlError>
 #include <QSqlRecord>
+#include "utility.h"
 #include "converter.h"
 #include "dbworker.h"
 #include "commandsaddform.h"
