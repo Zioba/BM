@@ -83,6 +83,69 @@ QSqlTableModel *DbWorker::getTable(QTableView *table, QString tableName, QString
     return model;
 }
 
+QString DbWorker::getCoordInformation(QString object)
+{
+    QString answer = "";
+    QSqlQuery query= QSqlQuery(db);
+    QString s;
+    s = "SELECT st_x(obj_location), st_y(obj_location), st_z(obj_location), direction FROM own_forces.combatobject_location WHERE combat_hierarchy='"+object+"';";
+    if ( !query.exec( s ) ) {
+        return "error";
+    }
+    else {
+        if ( query.size() == 0 ) return "error";
+        while ( query.next() ) {
+            answer.append( query.value(0).toString() );
+            answer.append(";");
+            answer.append( query.value(1).toString() );
+            answer.append( ";" );
+            answer.append( query.value(2).toString() );
+            answer.append(";");
+            answer.append( query.value(3).toString() );
+            answer.append(";");
+        }
+    }
+    answer.append( "\r" );
+    return answer;
+}
+
+QString DbWorker::getRocketInformation(QString object)
+{
+    QString answer = "";
+    QSqlQuery query= QSqlQuery(db);
+    QString s;
+    s = "SELECT type_tid FROM own_forces.rocket WHERE combatobjectid='"+object+"';";
+    if ( !query.exec( s ) ) {
+        return "error";
+    }
+    else {
+        if ( query.size() == 0 ) return "error";
+        while ( query.next() ) {
+            if (QString::compare( query.value( 0 ).toString(), "51.50.10") == 0) {
+                answer.append( "11" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.15") == 0) {
+                answer.append( "12" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.20") == 0) {
+                answer.append( "13" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.25") == 0) {
+                answer.append( "14" );
+                answer.append( ";" );
+            }
+            if (QString::compare( query.value( 0 ).toString(), "51.50.30") == 0) {
+                answer.append( ";" );
+            }
+        }
+    }
+    answer.append( "\r" );
+    return answer;
+}
+
 bool DbWorker::writeCoordinats(QString x, QString y, QString z, QString direction,
                                QString time, QString object)
 {
@@ -112,7 +175,36 @@ bool DbWorker::writeRocket(QString x,QString time, QString object)
     }
 }
 
-QSqlDatabase DbWorker::getDb() const
+QString DbWorker::convertReferenceNameTOCode(QString referenceName)
 {
-    return db;
+    QSqlQuery query = QSqlQuery( db );
+    QString s = "";
+    QString code;
+    s = "SELECT reference_data.terms.termhierarchy FROM reference_data.terms WHERE reference_data.terms.termname ='"+referenceName+"';";
+    if (!query.exec(s)) {
+        return "";
+    }
+    else {
+            while ( query.next() ) {
+                code = query.value( 0 ).toString();
+            }
+    }
+    return code;
+}
+
+QString DbWorker::convertCodeToReferenceName(QString code)
+{
+    QSqlQuery query = QSqlQuery( db );
+    QString s = "";
+    QString referenceName;
+    s = "SELECT reference_data.terms.termname FROM reference_data.terms WHERE reference_data.terms.termhierarchy ='"+code+"';";
+    if (!query.exec(s)) {
+        return "";
+    }
+    else {
+            while ( query.next() ) {
+                referenceName = query.value( 0 ).toString();
+            }
+    }
+    return referenceName;
 }

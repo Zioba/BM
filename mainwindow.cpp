@@ -146,26 +146,13 @@ QString MainWindow::makeDatagramCoord( QString q )
     answer.append( "C" );                        //данные о сообщении
     answer.append( "C1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
     answer.append( "=" );                        //Признак начала передаваемых данных
-    QSqlQuery query= QSqlQuery( dbConnect.getDb() );
-    QString s;
-    s = "SELECT st_x(obj_location), st_y(obj_location), st_z(obj_location), direction FROM own_forces.combatobject_location WHERE combat_hierarchy='"+q+"';";
-    if ( !query.exec( s ) ) {
-        makeLogNote("cant select");
+    QString request = dbConnect.getCoordInformation(q);
+    if (request.compare("error") == 0) {
+        return "error";
     }
     else {
-        if ( query.size() == 0 ) return "error";
-        while ( query.next() ) {
-            answer.append( query.value( 0 ).toString() );
-            answer.append( ";" );
-            answer.append( query.value( 1 ).toString() );
-            answer.append( ";" );
-            answer.append( query.value( 2 ).toString() );
-            answer.append( ";" );
-            answer.append( query.value( 3 ).toString() );
-            answer.append( ";" );
-        }
+        answer.append(request);
     }
-    answer.append( "\r" );
     return answer;
 }
 
@@ -179,38 +166,13 @@ QString MainWindow::makeDatagramRocket( QString q )
     answer.append( "C" );                        //данные о сообщении
     answer.append( "T1" );                       //Идентификатор приложения, которое  должно обрабатывать переданные данные.
     answer.append( "=" );                        //Признак начала передаваемых данных
-    QSqlQuery query= QSqlQuery( dbConnect.getDb() );
-    QString s;
-    s = "SELECT type_tid FROM own_forces.rocket WHERE combatobjectid='"+q+"';";
-    if ( !query.exec( s ) ) {
-        makeLogNote("cant select");
+    QString request = dbConnect.getRocketInformation(q);
+    if (request.compare("error") == 0) {
+        return "error";
     }
     else {
-        if ( query.size() == 0 ) return "error";
-        while ( query.next() ) {
-            if (QString::compare( query.value( 0 ).toString(), "51.50.10") == 0) {
-                answer.append( "11" );
-                answer.append( ";" );
-            }
-            if (QString::compare( query.value( 0 ).toString(), "51.50.15") == 0) {
-                answer.append( "12" );
-                answer.append( ";" );
-            }
-            if (QString::compare( query.value( 0 ).toString(), "51.50.20") == 0) {
-                answer.append( "13" );
-                answer.append( ";" );
-            }
-            if (QString::compare( query.value( 0 ).toString(), "51.50.25") == 0) {
-                answer.append( "14" );
-                answer.append( ";" );
-            }
-            if (QString::compare( query.value( 0 ).toString(), "51.50.30") == 0) {
-                answer.append( ";" );
-            }
-        }
+        answer.append(request);
     }
-    qDebug() << answer;
-    answer.append( "\r" );
     return answer;
 }
 
@@ -303,10 +265,10 @@ void MainWindow::parsingCommand( QString s, QString object)
     for (int j = 0; j < numb.toInt(NULL,10); j++) {
         QString param = assistParser( data, i );
         QString value = assistParser( data, i );
-        form->setParametr(Utility::convertCodeToReferenceName(dbConnect.getDb(), param), value);
+        form->setParametr(dbConnect.convertCodeToReferenceName(param), value);
     }
-    form->setCommandsSignals(Utility::convertCodeToReferenceName(dbConnect.getDb(), commandName));
-    form->setAttributeExecution(Utility::convertCodeToReferenceName(dbConnect.getDb(),priznak));
+    form->setCommandsSignals(dbConnect.convertCodeToReferenceName(commandName));
+    form->setAttributeExecution(dbConnect.convertCodeToReferenceName(priznak));
     form->setTimeCreate(timeCreate);
     form->setTimeExecution(timeExec);
     form->show();
