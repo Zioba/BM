@@ -33,3 +33,6 @@ FORMS    += mainwindow.ui\
         deldialog.ui \
     ipdialog.ui \
     commandsaddform.ui
+
+RESOURCES += \
+    resource.qrc

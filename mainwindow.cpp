@@ -13,14 +13,15 @@ MainWindow::MainWindow(DbWorker dbConnect, QWidget *parent) :
     QPoint pos( X_POSITION_FRAME, Y_POSITION_FRAME );
     this->move( pos );
     ui->setupUi( this );
-    setWindowTitle("BM");
-    makeLogNote("Start working");
+    setWindowTitle("Объект управления");
+    makeLogNote("Начало работы");
     udpSocket.bind( LISTERNING_PORT );
     on_combObjTableBut_clicked();
     converter = new Converter();
     setTargetIp();
     setMyIp();
     connect(&udpSocket, SIGNAL(readyRead()), this, SLOT(readDatagram()));
+    ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
 }
 
 MainWindow::~MainWindow()
