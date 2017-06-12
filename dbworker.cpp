@@ -208,3 +208,8 @@ QString DbWorker::convertCodeToReferenceName(QString code)
     }
     return referenceName;
 }
+
+QSqlDatabase DbWorker::getDb() const
+{
+    return db;
+}

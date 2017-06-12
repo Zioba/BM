@@ -24,6 +24,8 @@ public:
     QString getRocketInformation(QString object);
     QString convertReferenceNameTOCode(QString referenceName);
     QString convertCodeToReferenceName(QString code);
+    QSqlDatabase getDb() const;
+
 private:
     bool connectionStatus;
     QSqlDatabase db;

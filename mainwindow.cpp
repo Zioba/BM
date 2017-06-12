@@ -16,12 +16,12 @@ MainWindow::MainWindow(DbWorker dbConnect, QWidget *parent) :
     setWindowTitle("Объект управления");
     makeLogNote("Начало работы");
     udpSocket.bind( LISTERNING_PORT );
-    on_combObjTableBut_clicked();
     converter = new Converter();
-    setTargetIp();
-    setMyIp();
+    //setTargetIp();
+    //setMyIp();
     connect(&udpSocket, SIGNAL(readyRead()), this, SLOT(readDatagram()));
     ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
+    on_updBut_clicked();
 }
 
 MainWindow::~MainWindow()
@@ -41,11 +41,106 @@ void MainWindow::on_exitButton_clicked()
 {
    this->close();
 }
-//QSqlTableModel *model;
+
 void MainWindow::on_updBut_clicked()
 {
-    ui->tableView->update();
-    ui->logField->append( tr( "%1 таблица обновлена" ).arg( QTime::currentTime().toString( "hh:mm:ss" ) ) );
+    QSqlQuery query = QSqlQuery(dbConnect.getDb());
+    //подумать что делать с пунктом время исполнения
+    QString selectPattern = "SELECT  inf.order_id, t1.termname, inf.date_add "
+                "FROM orders_alerts.orders_alerts_info  inf "
+                "JOIN reference_data.terms t1 ON inf.order_tid = t1.termhierarchy;";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->commandTable->setRowCount(query.size());
+    int i= 0;
+    while (query.next()) {
+        ui->commandTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->commandTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        ui->commandTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        i++;
+    }
+    selectPattern = "SELECT cinf.outgoing_reg_number, cinf.outgoing_reg_datetime, t1.termname, t2.termname, cinf.holder_coid "
+            "FROM combatdocs.combatdocs_info cinf "
+              "JOIN combatdocs.combatdocs_type ctyp ON cinf.cmbdid = ctyp.cmbdid "
+              "JOIN combatdocs.combatdocs_theme cthm ON cinf.cmbdid = cthm.cmbdid "
+              "JOIN reference_data.terms t1 ON ctyp.doctype_tid = t1.termhierarchy "
+              "JOIN reference_data.terms t2 ON cthm.doctheme_tid = t2.termhierarchy;";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->documentTable->setRowCount(query.size());
+    i = 0;
+    while (query.next()) {
+        ui->documentTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->documentTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->documentTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
+        ui->documentTable->setItem(i, 3, new QTableWidgetItem(query.value(3).toString()));
+        ui->documentTable->setItem(i, 4, new QTableWidgetItem(query.value(4).toString()));
+        i++;
+    }
+    selectPattern = "SELECT combat_hierarchy,"
+            "ST_X(obj_location), ST_Y(obj_location), ST_Z(obj_location), direction,"
+              "date_add, date_edit, date_delete, id_manager FROM own_forces.combatobject_location;";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->coordinatTable->setRowCount(query.size());
+    i = 0;
+    while (query.next()) {
+        QString coordinats = "" + query.value(1).toString() + " N " + query.value(2).toString() + " E " + query.value(3).toString();
+        ui->coordinatTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->coordinatTable->setItem(i, 1, new QTableWidgetItem(coordinats));
+        ui->coordinatTable->setItem(i, 2, new QTableWidgetItem(query.value(4).toString()));
+        ui->coordinatTable->setItem(i, 3, new QTableWidgetItem(query.value(5).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->coordinatTable->setItem(i, 4, new QTableWidgetItem(query.value(6).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->coordinatTable->setItem(i, 5, new QTableWidgetItem(query.value(7).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->coordinatTable->setItem(i, 6, new QTableWidgetItem(query.value(8).toString()));
+        i++;
+    }
+    selectPattern = "SELECT combat_hierarchy, currentmode_tid, date_add, date_edit, date_delete, id_manager FROM own_forces.currentmode;";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->modeTable->setRowCount(query.size());
+    i = 0;
+    while (query.next()) {
+        ui->modeTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->modeTable->setItem(i, 1, new QTableWidgetItem(Utility::convertCodeToReferenceName(dbConnect.getDb(), query.value(1).toString())));
+        ui->modeTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->modeTable->setItem(i, 3, new QTableWidgetItem(query.value(3).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->modeTable->setItem(i, 4, new QTableWidgetItem(query.value(4).toDateTime().toString("dd.MM.yyyy hh:mm:ss")));
+        ui->modeTable->setItem(i, 5, new QTableWidgetItem(query.value(5).toString()));
+        i++;
+    }
+    selectPattern = "SELECT id_note, type_message, data, receiver_sender, \"package\", status FROM log.log_table_message;";
+    if (!query.exec(selectPattern)) {
+        qDebug() << "Unable to make select operation!" << query.lastError();
+    }
+    ui->logTable->setRowCount(query.size());
+    i = 0;
+    while (query.next()) {
+        ui->logTable->setItem(i, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->logTable->setItem(i, 1, new QTableWidgetItem(query.value(1).toString()));
+        ui->logTable->setItem(i, 2, new QTableWidgetItem(query.value(2).toString()));
+        ui->logTable->setItem(i, 3, new QTableWidgetItem(query.value(3).toString()));
+        ui->logTable->setItem(i, 4, new QTableWidgetItem(query.value(4).toString()));
+        ui->logTable->setItem(i, 5, new QTableWidgetItem(query.value(5).toString()));
+        i++;
+    }
+    makeLogNote("данные обновлены");
+    for ( int i = 0; i < ui->documentTable->columnCount(); i++ ) {
+        ui->documentTable->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
+    }
+    for ( int i = 0; i < ui->commandTable->columnCount(); i++ ) {
+        ui->commandTable->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
+    }
+    for ( int i = 0; i < ui->coordinatTable->columnCount(); i++ ) {
+        ui->coordinatTable->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
+    }
+    for ( int i = 0; i < ui->modeTable->columnCount(); i++ ) {
+        ui->modeTable->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
+    }
 }
 
 void MainWindow::on_clearBut_clicked()
@@ -293,24 +388,14 @@ QString MainWindow::assistParser( QString data, int &counter )
     return answer;
 }
 
-void MainWindow::on_combObjTableBut_clicked()
-{
-    QSqlTableModel *model = dbConnect.getTable(ui->tableView, "own_forces.combatobject_location", "combatobject_location");
-    ui->tableView->setModel( model );
-    for ( int i = 0; i < model->columnCount(); i++ ) {
-        ui->tableView->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
-    }
-    makeLogNote( "Загружены данные combat objects" );
-}
-
 void MainWindow::on_logTableBut_3_clicked()
 {
-    QSqlTableModel *model = dbConnect.getTable(ui->tableView, "log.log_table_message", "log_table_message");
+    /*QSqlTableModel *model = dbConnect.getTable(ui->tableView, "log.log_table_message", "log_table_message");
     ui->tableView->setModel( model );
     for ( int i = 0; i < model->columnCount(); i++ ) {
         ui->tableView->horizontalHeader()->setSectionResizeMode( i , QHeaderView::ResizeToContents);
     }
-    makeLogNote( "Загружены данные log table" );
+    makeLogNote( "Загружены данные log table" );*/
 }
 
 QString MainWindow::getCurrentDateAndTime()

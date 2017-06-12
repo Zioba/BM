@@ -73,14 +73,14 @@
           <item row="0" column="1">
            <widget class="QLineEdit" name="lineEdit_3">
             <property name="text">
-             <string>Объект № 3</string>
+             <string>1.10</string>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Наименование:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Код объекта:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -154,7 +154,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>4</number>
       </property>
       <property name="tabsClosable">
        <bool>false</bool>
@@ -169,6 +169,42 @@
        <attribute name="title">
         <string>Режимы</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="QTableWidget" name="modeTable">
+          <column>
+           <property name="text">
+            <string>Код объекта</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Режим</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Создано</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Изменено</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Удалено</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Изменивший данные</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_6">
        <attribute name="title">
@@ -176,24 +212,148 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <widget class="QTableView" name="tableView"/>
+         <widget class="QTableWidget" name="coordinatTable">
+          <column>
+           <property name="text">
+            <string>Код объекта</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Координаты</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Направление</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Создано</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Изменено</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Удалено</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Изменивший данные</string>
+           </property>
+          </column>
+         </widget>
         </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="tab_2">
-       <attribute name="title">
-        <string>Маршруты</string>
-       </attribute>
       </widget>
       <widget class="QWidget" name="tab_5">
        <attribute name="title">
         <string>Команды</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QTableWidget" name="commandTable">
+          <column>
+           <property name="text">
+            <string>Идентификатор</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Наименование</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Время формирования</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
         <string>Документы</string>
        </attribute>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QTableWidget" name="documentTable">
+          <column>
+           <property name="text">
+            <string>Регистрационный номер</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Дата регистрации</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Тип документа</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Тема документа</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Источник информации</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>История сообщений</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QTableWidget" name="logTable">
+          <column>
+           <property name="text">
+            <string>id записи</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>тип</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>дата</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>направление</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>текст</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>статус</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -310,7 +470,7 @@
      <x>0</x>
      <y>0</y>
      <width>1001</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="operations">
@@ -319,6 +479,8 @@
     </property>
     <addaction name="itemSendCoord"/>
     <addaction name="itemSendRocket"/>
+    <addaction name="action"/>
+    <addaction name="action_2"/>
    </widget>
    <addaction name="operations"/>
   </widget>
@@ -330,6 +492,16 @@
   <action name="itemSendRocket">
    <property name="text">
     <string>Отправить данные о боекомплекте</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>Отправить данные о режиме</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>Отправить документ</string>
    </property>
   </action>
  </widget>

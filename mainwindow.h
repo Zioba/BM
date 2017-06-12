@@ -40,7 +40,6 @@ private slots:
     void on_itemSendRocket_triggered();
     void setTargetIp();
     void setMyIp();
-    void on_combObjTableBut_clicked();
     void on_logTableBut_3_clicked();
 
     QString getCurrentDateAndTime();
