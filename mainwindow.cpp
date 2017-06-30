@@ -19,6 +19,10 @@ MainWindow::MainWindow(DbWorker dbConnect, QWidget *parent) :
     converter = new Converter();
     //setTargetIp();
     //setMyIp();
+    //myIp.setAddress("192.168.1.95");
+    //targetIp.setAddress("192.168.1.87");
+    myIp.setAddress("192.168.1.95");
+    targetIp.setAddress("192.168.1.87");
     connect(&udpSocket, SIGNAL(readyRead()), this, SLOT(readDatagram()));
     ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
     on_updBut_clicked();
