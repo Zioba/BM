@@ -1,4 +1,6 @@
 #include "dbworker.h"
+#include <QDebug>
+#include <QDateTime>
 
 DbWorker::DbWorker( QString hostName, int port, QString baseName,
                     QString userName, QString password )
@@ -212,4 +214,112 @@ QString DbWorker::convertCodeToReferenceName(QString code)
 QSqlDatabase DbWorker::getDb() const
 {
     return db;
+}
+
+bool DbWorker::saveCommand(QString object, CommandsMessageBox box)
+{
+    QString command = box.getCommandName();
+    if (command.compare("10") == 0) {
+        command = "70.10.30.20";
+    }
+    if (command.compare("11") == 0) {
+        command = "70.10.30.30";
+    }
+    if (command.compare("31") == 0) {
+        command = "70.10.20.50";
+    }
+    if (command.compare("32") == 0) {
+        command = "70.10.20.70";
+    }
+    if (command.compare("33") == 0) {
+        command = "70.10.20.10";
+    }
+    if (command.compare("34") == 0) {
+        command = "70.10.20.20";
+    }
+    if (command.compare("35") == 0) {
+        command = "70.10.20.45";
+    }
+    if (command.compare("36") == 0) {
+        command = "70.10.10.35";
+    }
+    if (command.compare("40") == 0) {
+        command = "70.10.50.10";
+    }
+    if (command.compare("41") == 0) {
+        command = "70.10.50.20";
+    }
+    if (command.compare("51") == 0) {
+        command = "70.10.10.21";
+    }
+    if (command.compare("52") == 0) {
+        command = "70.10.10.40";
+    }
+    if (command.compare("53") == 0) {
+        command = "70.10.40.20";
+    }
+    if (command.compare("54") == 0) {
+        command = "70.10.20.70";
+    }
+    if (command.compare("55") == 0) {
+        command = "70.10.10.25";
+    }
+    QSqlQuery query = QSqlQuery( db );
+    if (!query.exec("SELECT order_id FROM orders_alerts.orders_alerts_info ORDER BY order_id DESC LIMIT 1;")) {
+        return false;
+    }
+    else {
+        int id;
+        while ( query.next() ) {
+            id = query.value( 0 ).toInt();
+        }
+        id++;
+        QDateTime time;
+        long long x = box.getTimeAdd().toULong(NULL,10);
+        time.setTime_t(box.getTimeAdd().toLongLong(NULL,10));
+        qDebug() << time;
+        time.setTime_t(box.getTimeExec().toLongLong(NULL,10));
+        qDebug() << time;
+        QString insertQuery = "INSERT INTO orders_alerts.orders_alerts_info( "
+                              "combat_hierarchy, order_id, training_object, order_tid, date_add, date_edit, date_delete, id_manager) "
+                              "VALUES ('"+object+"', '"
+                                         +QString::number(id)+"', '"
+                                         +"true"+"', '"
+                                         +command+"', '"
+                                         +time.toString("dd.MM.yyyy hh:mm:ss.zzz")+"', '"
+                                         +time.toString("dd.MM.yyyy hh:mm:ss.zzz")+"', NULL, '"
+                                         +QString::number(1)+"');";
+        qDebug() << insertQuery;
+        if (!query.exec(insertQuery)) {
+            return false;
+        }
+        for (int i = 0; i < box.getParametrs().size(); i++) {
+            QString coil;
+            if (box.getParametrs().at(i).compare("0") == 0) {
+                return true;
+            }
+            if (box.getParametrs().at(i).compare("1") == 0) {
+                coil = "70.20.20";
+            }
+            if (box.getParametrs().at(i).compare("2") == 0) {
+                coil = "70.20.05";
+            }
+            if (box.getParametrs().at(i).compare("3") == 0) {
+                coil = "70.20.10";
+            }
+            if (box.getParametrs().at(i).compare("4") == 0) {
+                coil = "70.20.15";
+            }
+            insertQuery = "INSERT INTO orders_alerts.orders_alerts_param( "
+                          "order_id, param_tid, param_value) "
+                          "VALUES ('"+QString::number(id)+"', '"
+                                     +coil+"', '"
+                                     +box.getParametrsValue().at(i)+"');";
+            if (!query.exec(insertQuery)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
 }
