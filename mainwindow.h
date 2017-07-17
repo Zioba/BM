@@ -14,6 +14,7 @@
 #include "utility.h"
 #include "converter.h"
 #include "dbworker.h"
+#include "commandsmessagebox.h"
 #include "commandsaddform.h"
 
 namespace Ui {
@@ -31,6 +32,7 @@ public:
 
      ~MainWindow();
 
+    void sendConfirm(QByteArray datagram);
 private slots:
     void readDatagram();
     void on_exitButton_clicked();
@@ -61,9 +63,9 @@ private:
     QHostAddress targetIp;
     Converter *converter;
     DbWorker dbConnect;
-    void parsingMessage(QString s);
+    void parsingMessage(QByteArray s);
     QString assistParser(QString data, int &counter);
-    void parsingCommand(QString s, QString object);
+    void parsingCommand(QByteArray s);
 };
 
 #endif // MAINWINDOW_H

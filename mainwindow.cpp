@@ -3,6 +3,7 @@
 #include "deldialog.h"
 #include "ipdialog.h"
 #include <QErrorMessage>
+#include <QDateTime>
 #include <QMessageBox>
 
 MainWindow::MainWindow(DbWorker dbConnect, QWidget *parent) :
@@ -19,12 +20,12 @@ MainWindow::MainWindow(DbWorker dbConnect, QWidget *parent) :
     converter = new Converter();
     //setTargetIp();
     //setMyIp();
-    //myIp.setAddress("192.168.1.95");
-    //targetIp.setAddress("192.168.1.87");
-    myIp.setAddress("192.168.1.95");
-    targetIp.setAddress("192.168.1.87");
+    myIp.setAddress("192.168.1.87");
+    targetIp.setAddress("192.168.1.180");
     connect(&udpSocket, SIGNAL(readyRead()), this, SLOT(readDatagram()));
     ui->dateTimeEdit->setDateTime(QDateTime::currentDateTime());
+    QDateTime time(QDate(2017, 3, 30), QTime(13, 43, 48));
+    //1499771506168
     on_updBut_clicked();
 }
 
@@ -168,12 +169,13 @@ void MainWindow::on_itemSendCoord_triggered()
     QStringList list;
     list << myIp.toString()
          << targetIp.toString()
+         << "0"
          << "17"
          << QString::number( data.length() + 224 )
          << myPort
          << targetPort
          << QString::number( data.length() )
-         << ""
+         << "14"
          << "0001"
          << QString::number( unicumMessageId )
          << "1"
@@ -210,12 +212,13 @@ void MainWindow::on_itemSendRocket_triggered()
     QStringList list;
     list << myIp.toString()
          << targetIp.toString()
+         << "0"
          << "17"
          << QString::number( data.length() + 224 )
          << myPort
          << targetPort
          << QString::number( data.length() )
-         << ""
+         << "14"
          << "0001"
          << QString::number( unicumMessageId )
          << "1"
@@ -294,15 +297,72 @@ void MainWindow::setMyIp() {
 void MainWindow::readDatagram()
 {
     QByteArray datagram;
+    QByteArray package;
+    QByteArray confirm;
     datagram.resize( udpSocket.pendingDatagramSize() );
     udpSocket.readDatagram( datagram.data(), datagram.size() );
     qDebug() << datagram;
-    QStringList messageMembersList = converter->decodeDatagram( datagram );
-    parsingMessage( messageMembersList.at( 12 ) );
+    qDebug() << datagram.size();
+    QStringList messageMembersList = converter->decodeDatagram(datagram, &package, &confirm);
+    qDebug() << "package" << package;
+    parsingMessage( package );
 }
 
-void MainWindow::parsingMessage( QString s )
+void MainWindow::sendConfirm(QByteArray datagram) {
+    udpSocket.writeDatagram( datagram, targetIp, targetPort.toLong( Q_NULLPTR, 10) );
+    makeLogNote( "отправлен пакет подтверждения" );
+}
+
+void MainWindow::parsingMessage( QByteArray s )
 {
+    QString source = "";
+    for (int i=0; i<1; i++) {
+        QByteArray q;
+        q[0]=s[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "метод сжатия данных " << source;
+    source = "";
+    for (int i=1; i<7; i++) {
+        QByteArray q;
+        q[0]=s[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "отправитель " << source;
+    source = "";
+    for (int i=7; i<13; i++) {
+        QByteArray q;
+        q[0]=s[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "получатель " << source;
+    source = "";
+    for (int i=13; i<14; i++) {
+        QByteArray q;
+        q[0]=s[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "категория данных " << source;
+    source = "";
+    for (int i=14; i<15; i++) {
+        QByteArray q;
+        q[0]=s[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "тип протокола " << source;
+    source = "";
+    for (int i=15; i<17; i++) {
+        QByteArray q;
+        q[0]=s[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "тип сообщения " << source;
     if ( s.at( 0 ) == '1' ) {
         makeLogNote( "oшибка, данные сжаты" );
         //не работаем пока со сжатием данных
@@ -310,23 +370,9 @@ void MainWindow::parsingMessage( QString s )
     }
     bool trigger = false;
     QString object = "";
-    for ( int i = 1; i < 7; i++ )
-    {
-        if ( s.at( i ) != '0' ) {
-            trigger = true;
-            object += s.at( i );
-        }
-        else if ( trigger ) {
-            object += s.at( i );
-        }
-    }
-    QString messageCode;
-    for ( int i = 15; i < 17; i++ )
-    {
-        messageCode+=s.at( i );
-    }
+    QString messageCode=source;
     if (QString::compare( messageCode, "K1") == 0) {
-        parsingCommand(s, object);
+        parsingCommand(s);
         if ( dbConnect.makeNote( 1, getCurrentDateAndTime(), 1, s, 3 ) ) {
             makeLogNote( "получена КОМАНДА" );
         }
@@ -346,39 +392,98 @@ void MainWindow::parsingMessage( QString s )
     }
 }
 
-void MainWindow::parsingCommand( QString s, QString object)
+void MainWindow::parsingCommand( QByteArray s)
 {
-    QString data = "";
+    QByteArray data = "";
+    CommandsMessageBox box;
     for ( int i = 18; i < s.size(); i++ )
     {
         data += s.at( i );
     }
-    int i = 0;
-    QString commandId = assistParser( data, i );
-    QString timeCreate = assistParser( data, i );
-    QString commandName = assistParser( data, i );
-    QString timeExec = assistParser( data, i );
-    QString priznak = assistParser( data, i );
-    QString numb = assistParser( data, i );
-    qDebug() << commandId << timeCreate << commandName << timeExec << priznak << numb;
-    CommandsAddForm *form = new CommandsAddForm("Машина боевого управления");
-    for (int j = 0; j < numb.toInt(NULL,10); j++) {
-        QString param = assistParser( data, i );
-        QString value = assistParser( data, i );
-        form->setParametr(param, value);
+    qDebug() << data;
+    QString source = "";
+    for (int i=0; i<6; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        QString str(q);
+        source.append(str);
     }
-    form->setCommandsSignals(commandName);
-    form->setAttributeExecution(priznak);
-    form->setTimeCreate(timeCreate);
-    form->setTimeExecution(timeExec);
-    form->show();
-    //типо сделать тут фрейм с отображением данных
-    /*if ( dbConnect.writeCoordinats(x, y, z, dir, getCurrentDateAndTime(), object) ) {
-        makeLogNote( "база обновлена" );
+    qDebug() << "идентификатор команды " << source;
+    box.setIdCommand(source);
+    source = "";
+    for (int i=7; i<11; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        source.append(converter->convertToBinaryNew(converter->convertByteToDec(q)));
+        qDebug() << source;
     }
-    else {
-        makeLogNote( "ошибка запроса" );
-    }*/
+    source = converter->convertToDex(source);
+    qDebug() << "время формирования команды " << source;
+    box.setTimeAdd(source);
+    source = "";
+    for (int i=12; i<14; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "наименование команды " << source;
+    box.setCommandName(source);
+    source = "";
+    for (int i=15; i<19; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        source.append(converter->convertToBinaryNew(converter->convertByteToDec(q)));
+        qDebug() << source;
+    }
+    source = converter->convertToDex(source);
+    qDebug() << "время исполнения команды " << source;
+    box.setTimeExec(source);
+    source = "";
+    for (int i=20; i<21; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "признак исполнения " << source;
+    box.setAttributeExec(source);
+    source = "";
+    for (int i=22; i<23; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "Наименование параметра " << source;
+    QStringList paramList;
+    QStringList paramValueList;
+    paramList << source;
+    source = "";
+    for (int i=24; i<27; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "Значение параметра " << source;
+    paramValueList << source;
+    source = "";
+    for (int i=28; i<data.size()-1; i++) {
+        QByteArray q;
+        q[0]=data[i];
+        QString str(q);
+        source.append(str);
+    }
+    qDebug() << "уточняющий текст " << source;
+    box.setParametrs(paramList);
+    box.setParametrsValue(paramValueList);
+    if ( dbConnect.saveCommand("1.11", box)) {
+            makeLogNote( "база обновлена" );
+        }
+        else {
+            makeLogNote( "ошибка добавления комманды" );
+        }
 }
 
 QString MainWindow::assistParser( QString data, int &counter )

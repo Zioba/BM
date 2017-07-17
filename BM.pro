@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     converter.cpp \
     dbworker.cpp \
     commandsaddform.cpp \
-    utility.cpp
+    utility.cpp \
+    commandsmessagebox.cpp
 
 HEADERS  += mainwindow.h\
         deldialog.h \
@@ -27,7 +28,8 @@ HEADERS  += mainwindow.h\
     converter.h \
     dbworker.h \
     commandsaddform.h \
-    utility.h
+    utility.h \
+    commandsmessagebox.h
 
 FORMS    += mainwindow.ui\
         deldialog.ui \

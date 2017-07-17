@@ -5,8 +5,8 @@
 #include <QSqlTableModel>
 #include <QSqlRecord>
 #include <QTableView>
-
 #include <QString>
+#include "commandsmessagebox.h"
 
 
 class DbWorker
@@ -25,7 +25,7 @@ public:
     QString convertReferenceNameTOCode(QString referenceName);
     QString convertCodeToReferenceName(QString code);
     QSqlDatabase getDb() const;
-
+    bool saveCommand(QString object, CommandsMessageBox box);
 private:
     bool connectionStatus;
     QSqlDatabase db;
