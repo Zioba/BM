@@ -365,10 +365,10 @@ void MainWindow::parsingCommand( QString s, QString object)
     for (int j = 0; j < numb.toInt(NULL,10); j++) {
         QString param = assistParser( data, i );
         QString value = assistParser( data, i );
-        form->setParametr(dbConnect.convertCodeToReferenceName(param), value);
+        form->setParametr(param, value);
     }
-    form->setCommandsSignals(dbConnect.convertCodeToReferenceName(commandName));
-    form->setAttributeExecution(dbConnect.convertCodeToReferenceName(priznak));
+    form->setCommandsSignals(commandName);
+    form->setAttributeExecution(priznak);
     form->setTimeCreate(timeCreate);
     form->setTimeExecution(timeExec);
     form->show();
